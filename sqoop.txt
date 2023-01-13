@@ -1,0 +1,60 @@
+Good day, this is a summary of my knowledge on Sqoop (main focus on import).
+If you came here for a "ready-made recipe", here it is:
+sqoop import -D mapreduce.map.memory.mb=32768 -D mapreduce.map.java.opts=-Xmx28800m -D mapreduce.task.io.sort.mb=9600 -D oracle.row.fetch.size=400000 --num-mappers 20 --fetch-size 200000 --table owner.table_name --connect jdbc:oracle:thin:@address:port:sid --username user --password pwd --direct --verbose --hcatalog-database db_name --hcatalog-table table_name --create-hcatalog-table --hcatalog-storage-stanza "stored as orcfile"
+
+-D oraoop.chunk.method=PARTITION
+--map-column-java ROW_ID=String --map-column-hive ROW_ID=String
+-D mapreduce.task.timeout=0
+
+The order of the commands is important (the commands starting with -D should be after import and before all the others).
+
+So, first the setup:
+
+# --------------------------------------------------------
+# JAVA
+# --------------------------------------------------------
+RUN yum install -y  java-1.8.0-openjdk-devel
+ENV JAVA_HOME=/…… /…… /…… /java-1.8.0-openjdk/
+
+# --------------------------------------------------------
+# SQOOP
+# --------------------------------------------------------
+
+ENV SQOOP_VERSION=1.4.7
+ENV SQOOP_HOME=/opt/sqoop-${SQOOP_VERSION}.bin__hadoop-2.6.0
+ENV PATH=$PATH:${SQOOP_HOME}/bin
+
+RUN yum install -y unzip
+RUN yum install -y make
+RUN curl -fSL http://archive.apache.org/dist/sqoop/1.4.7/sqoop-1.4.7.bin__hadoop-2.6.0.tar.gz -o /tmp/sqoop.tar.gz \
+    && tar -xvf /tmp/sqoop.tar.gz -C /opt/ \
+    && rm /tmp/sqoop.tar.gz
+
+Make sure that the folder: ~/sqoop-1.4.7.bin__hadoop-2.6.0/lib has the driver file!
+By default it is not there
+It is necessary to edit the file ~/conf/sqoop-env.sh (by default it is called sqoop-env-template.sh, it is necessary to rename it)
+Also it is necessary to rename the file oraoop-site-template.xml -> oraoop-site.xml
+# Set Hadoop-specific environment variables here.
+
+#Set path to where bin/hadoop is available
+export HADOOP_VERSION=3.1.1.5
+export HADOOP_COMMON_HOME=/opt/hadoop/
+
+#Set path to where hadoop-*-core.jar is available
+export HADOOP_MAPRED_HOME=/opt/hadoop/
+
+#Set the path to where bin/hive is available
+export HIVE_HOME=/opt/hive
+export HBASE_HOME=
+export ZOOCFEDIR=
+export SQOOP_USER_CLASSPATH=
+or you can use such syntax: 
+export HBASE_HOME-${HBASE_HOME:-/opt/…}
+
+
+The whole process boils down to the following steps:
+1.	Installing JDK
+2.	Installing Sqoop
+3.	Adding the driver
+4.	Adding variables to the Sqoop configuration file
+5.	Adding environment variables
