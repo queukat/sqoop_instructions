@@ -58,3 +58,44 @@ The whole process boils down to the following steps:
 3.	Adding the driver
 4.	Adding variables to the Sqoop configuration file
 5.	Adding environment variables
+
+Prepare for work:
+Grant the following rights to the Oracle account:
+grant select on v_$instance to user;
+grant select on dba_tables to user;
+grant select on dba_tab_columns to user;
+grant select on dba_objects to user;
+grant select on dba_extents to user;
+grant select on dba_segments to user;
+grant select on dba_constraints to user;
+grant select on v_$database to user;
+grant select on v_$parameter to user;
+grant select on dba_tab_subpartitions to user;
+
+Now you can start the import. Sqoop is very efficient when transferring tables. If you need to transfer a view, it uses a full scan.
+
+The command:
+
+sqoop import -D mapreduce.map.memory.mb=32768 -D mapreduce.map.java.opts=-Xmx28800m -D mapreduce.task.io.sort.mb=9600 -D oracle.row.fetch.size=400000 --num-mappers 20 --fetch-size 200000 --table owner.table_name --connect jdbc:oracle:thin:@address:port:sid --username user --password pwd --direct --verbose --hcatalog-database db_name --hcatalog-table table_name --create-hcatalog-table --hcatalog-storage-stanza "stored as orcfile"
+
+-D oraoop.chunk.method=PARTITION
+--map-column-java ROW_ID=String --map-column-hive ROW_ID=String
+-D mapreduce.task.timeout=0
+
+Let's break it down step by step:
+
+1. sqoop import (calling sqoop import)
+2. -D mapreduce.map.memory.mb=32768 -D mapreduce.map.java.opts=-Xmx28800m -D mapreduce.task.io.sort.mb=9600 (setting the container size if not enough memory)
+3. -D oracle.row.fetch.size=400000 (number of rows the Oracle JDBC driver should fetch in each network round-trip to the database) combined with --fetch-size 200000 in a 1 to 2 ratio
+4. --num-mappers 20 (number of threads)
+5. --table owner.table_name --connect jdbc:oracle:thin:@address:port:sid --username user --password pwd (connection parameters)
+6. --direct (uses Oraoop queries, increasing speed. Does not work with views, use: --split-by <column-name>)
+7. --verbose (full log output, helps when problems arise)
+8. --hcatalog-database db_name --hcatalog-table table_name (for more stable work I use hcatalog. You can also use: --hive-table <table-name>)
+9. --create-hcatalog-table (creating the table. Can also be dropped)
+10. --hcatalog-storage-stanza "stored as orcfile" (storage format)
+11. -D oraoop.chunk.method=PARTITION (one partition - one file)
+12. --map-column-java ROW_ID=String --map-column-hive ROW_ID=String (sqoop does not know how to handle ROW_ID, have to change the type)
+13. -D mapreduce.task.timeout=0 (sometimes view takes a long time to assemble and shoots by timer)
+
+Thus, the command above allows to import data from Oracle to HCatlog using Sqoop.
