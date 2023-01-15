@@ -71,7 +71,7 @@ grant select on v_$database to user;
 grant select on v_$parameter to user;
 grant select on dba_tab_subpartitions to user;
 
-Now you can start the import. Sqoop is very efficient when transferring tables. If you need to transfer a view, it uses a full scan.
+Now you can start the import. Sqoop is very efficient when transferring #### tables ####. If you need to transfer a view, it uses a full scan.
 
 The command:
 
