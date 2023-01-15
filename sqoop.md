@@ -10,9 +10,9 @@ The order of the commands is important (the commands starting with -D should be 
 
 So, first the setup:
 
-# --------------------------------------------------------
-# JAVA
-# --------------------------------------------------------
+
+## JAVA
+
 RUN yum install -y  java-1.8.0-openjdk-devel
 ENV JAVA_HOME=/…… /…… /…… /java-1.8.0-openjdk/
 
