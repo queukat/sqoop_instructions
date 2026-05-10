@@ -1,5 +1,9 @@
 # Apache Sqoop import instructions
 
+<!-- public-repo-status -->
+> Status: Stable knowledge base. Issues are optional and should be limited to corrections or clearly reproducible documentation gaps.
+
+
 Practical Apache Sqoop import notes from long-term testing, focused on Oracle/Oraoop imports into Hadoop through Hive/HCatalog and ORC.
 
 ---
